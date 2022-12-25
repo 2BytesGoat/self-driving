@@ -14,3 +14,4 @@ tile_data = PoolIntArray( 65541, 1, 0, 65542, 1, 1, 65543, 1, 1, 65544, 1, 1, 65
 
 [node name="Agent" parent="." instance=ExtResource( 1 )]
 position = Vector2( 224, 152 )
+manual_control = false
