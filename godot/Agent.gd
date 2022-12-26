@@ -14,11 +14,37 @@ const MAX_SPEED = 200
 const TURN_SPEED = 20
 var velocity = Vector2.ZERO
 
-func _ready():
-	_init_rays()
-	_open_socket()
+export(NodePath) onready var follow_path = get_node(follow_path)
+var prev_completion = 0.0
+var laps_completed = 0
 
-func _init_rays():
+func _ready():
+	_init_sensors()
+	_open_socket()
+	prev_completion = get_completion_perc()
+
+func _physics_process(delta):
+	if manual_control:
+		velocity = get_keyboard_input()
+	else:
+		velocity = get_socket_input()
+	
+	if velocity != Vector2.ZERO:
+		var target_rotation = atan2(velocity.y, velocity.x)
+		self.rotation = lerp_angle(self.rotation, target_rotation, delta*TURN_SPEED)
+	
+	move_and_collide(velocity * delta * MAX_SPEED)
+	update_laps()
+
+func _input(event):
+	if event is InputEventKey:
+		if Input.is_action_just_pressed("ui_accept"):
+			var modifier = prev_completion
+			if sign(laps_completed) == -1:
+				modifier = - (1 - prev_completion)
+			var score = laps_completed + prev_completion
+
+func _init_sensors():
 	for i in range(1, ray_number+1):
 		var ray_angle = i * PI / (ray_number + 1)
 		var ray = RayCast2D.new()
@@ -33,18 +59,6 @@ func _open_socket():
 		socket_stop = true
 	else:
 		print("Listening on port 4242 on localhost")
-
-func _physics_process(delta):
-	if manual_control:
-		velocity = get_keyboard_input()
-	else:
-		velocity = get_socket_input()
-	
-	if velocity != Vector2.ZERO:
-		var target_rotation = atan2(velocity.y, velocity.x)
-		self.rotation = lerp_angle(self.rotation, target_rotation, delta*TURN_SPEED)
-	
-	move_and_collide(velocity * delta * MAX_SPEED)
 
 func get_keyboard_input():
 	var input_vector = Vector2.ZERO
@@ -68,14 +82,14 @@ func get_socket_input():
 		socket.close()
 		return input_vector
 	
-	var evaluated_data = evaluate(data)
+	var evaluated_data = evaluate_expression(data)
 	if evaluated_data:
 		return evaluated_data
 
 	print("Could not evaluate")
 	return input_vector
 
-func evaluate(command, variable_names = [], variable_values = []):
+func evaluate_expression(command, variable_names = [], variable_values = []):
 	var expression = Expression.new()
 	var error = expression.parse(command, variable_names)
 	if error != OK:
@@ -86,3 +100,22 @@ func evaluate(command, variable_names = [], variable_values = []):
 	if expression.has_execute_failed():
 		return null
 	return result
+
+func get_completion_perc():
+	var curve = follow_path.get_curve()
+	var offset = curve.get_closest_offset(self.global_position)
+	return offset/curve.get_baked_length()
+
+func update_laps():
+	var completion = get_completion_perc()
+	if prev_completion >= 0.95 and completion <= 0.1:
+		laps_completed += 1
+	elif prev_completion <= 0.1 and completion >= 0.95:
+		laps_completed -= 1
+	prev_completion = completion
+
+func calculate_score():
+	var modifier = prev_completion
+	if sign(laps_completed) == -1:
+		modifier = - (1 - prev_completion)
+	return laps_completed + prev_completion

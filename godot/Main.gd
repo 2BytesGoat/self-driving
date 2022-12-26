@@ -14,7 +14,7 @@ func _input(event):
 			var perc = get_completion_perc()
 			if prev_perc >= 0.95 and perc <= 0.1:
 				print('score')
-			if prev_perc <= 0.1 and perc >= 0.95:
+			elif prev_perc <= 0.1 and perc >= 0.95:
 				print('undo point')
 			prev_perc = perc
 
