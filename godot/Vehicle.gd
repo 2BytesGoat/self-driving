@@ -23,7 +23,6 @@ func _physics_process(delta):
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 	velocity = move_and_slide(velocity)
-	input_vector = Vector2.ZERO
 
 func _init_sensors():
 	for i in range(1, ray_number+1):

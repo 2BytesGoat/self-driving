@@ -1,6 +1,8 @@
 extends Node2D
 
 export(NodePath) onready var follow_path = get_node(follow_path)
+export var manual_control = false
+
 var prev_completion = 0.0
 var laps_completed = 0
 
@@ -9,11 +11,11 @@ onready var vehicle = get_node("Vehicle")
 func _ready():
 	prev_completion = get_completion_perc()
 
-func _physics_process(delta):
-	move_vehicle()
+func _input(event):
+	if manual_control:
+		do_action(get_keyboard_input())
 
-func move_vehicle():
-	var input_vector = get_keyboard_input()
+func do_action(input_vector):
 	vehicle.update_input_vector(input_vector)
 
 func get_keyboard_input():

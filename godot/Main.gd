@@ -1,47 +1,52 @@
-extends "res://ManualAgent.gd"
+extends Node2D
+
+export var udp_control = false
+export var agent_stuck_frames = 100
 
 var socket: PacketPeerUDP
 var socket_host = "127.0.0.1"
 var socket_port = 4242
 var socket_stop = false
 
+onready var agent = get_node("Agent")
+
 func _ready():
-	_open_socket()
-	prev_completion = get_completion_perc()
+	if udp_control:
+		_open_socket()
+
+func _process(_delta):
+	if udp_control:
+		var input_vector = get_socket_input()
+		if input_vector:
+			agent.do_action(input_vector["agent1"])
+		else:
+			agent.do_action(Vector2.ZERO)
 
 func _open_socket():
 	socket = PacketPeerUDP.new()
-	if(socket.listen(4242,"127.0.0.1") != OK):
+	if(socket.listen(4242, "127.0.0.1") != OK):
 		print("An error occurred listening on port 4242")
 		socket_stop = true
 	else:
 		print("Listening on port 4242 on localhost")
 
-func move_vehicle():
-	var input_vector = get_socket_input()
-	vehicle.update_input_vector(input_vector)
-
 func get_socket_input():
-	var input_vector = Vector2.ZERO
-	if socket_stop:
-		return input_vector
-	
 	var data = socket.get_packet().get_string_from_ascii()
 	if not data:
-		return input_vector
+		return
 	
 	if data == "quit":
 		print("Close Connection")
 		socket_stop = false
 		socket.close()
-		return input_vector
+		return
 	
 	var evaluated_data = evaluate_expression(data)
 	if evaluated_data:
 		return evaluated_data
-
+	
 	print("Could not evaluate")
-	return input_vector
+	return
 
 func evaluate_expression(command, variable_names = [], variable_values = []):
 	var expression = Expression.new()
