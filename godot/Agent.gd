@@ -1,12 +1,14 @@
 extends Node2D
 
 export(NodePath) onready var follow_path = get_node(follow_path)
-export var manual_control = false
 
+var manual_control = false
+var max_stopped_frames = 420
 var prev_completion = 0.0
 var laps_completed = 0
 
 onready var vehicle = get_node("Vehicle")
+
 
 func _ready():
 	prev_completion = get_completion_perc()
@@ -17,6 +19,16 @@ func _input(event):
 
 func do_action(input_vector):
 	vehicle.update_input_vector(input_vector)
+
+func get_state():
+	var state = {}
+	state["sensors"] = vehicle.get_sensor_status()
+	state["rotation"] = stepify(vehicle.rotation, 0.01)
+	state["velocity"] = vehicle.velocity
+	return state
+
+func is_done():
+	return vehicle.stopped_frames >= max_stopped_frames
 
 func get_keyboard_input():
 	var input_vector = Vector2.ZERO

@@ -1,7 +1,7 @@
 extends Node2D
 
 export var udp_control = false
-export var agent_stuck_frames = 100
+export var max_stopped_frames = 420
 
 var socket: PacketPeerUDP
 var socket_host = "127.0.0.1"
@@ -11,8 +11,15 @@ var socket_stop = false
 onready var agent = get_node("Agent")
 
 func _ready():
+	agent.manual_control = not udp_control
+	agent.max_stopped_frames = max_stopped_frames
 	if udp_control:
 		_open_socket()
+
+func _input(event):
+	if event.is_action_pressed("ui_accept"):
+		print(agent.get_state())
+		print(agent.is_done())
 
 func _process(_delta):
 	if udp_control:

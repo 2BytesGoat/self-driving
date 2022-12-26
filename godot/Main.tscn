@@ -11,7 +11,6 @@ _data = {
 
 [node name="Main" type="Node2D"]
 script = ExtResource( 3 )
-udp_control = true
 
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = ExtResource( 2 )
@@ -23,7 +22,6 @@ tile_data = PoolIntArray( 65541, 1, 0, 65542, 1, 1, 65543, 1, 1, 65544, 1, 1, 65
 [node name="Agent" parent="." instance=ExtResource( 1 )]
 position = Vector2( 241, 142 )
 follow_path = NodePath("../Path2D")
-manual_control = true
 
 [node name="Path2D" type="Path2D" parent="."]
 curve = SubResource( 1 )
