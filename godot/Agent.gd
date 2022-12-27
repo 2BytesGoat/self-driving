@@ -1,6 +1,6 @@
 extends Node2D
 
-export(NodePath) onready var follow_path = get_node(follow_path)
+var follow_path: Path2D
 
 var manual_control = false
 var max_stopped_frames = 420

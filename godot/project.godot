@@ -14,6 +14,10 @@ config/name="Self-driving"
 run/main_scene="res://Main.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+Utils="*res://Singletons/Utils.gd"
+
 [gui]
 
 common/drop_mouse_on_gui_input_disabled=true
