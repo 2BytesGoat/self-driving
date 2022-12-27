@@ -11,13 +11,14 @@ onready var vehicle = get_node("Vehicle")
 
 
 func _ready():
-	prev_completion = get_completion_perc()
+	update_laps()
 
 func _input(event):
 	if manual_control:
 		do_action(get_keyboard_input())
 
 func do_action(input_vector):
+	update_laps()
 	vehicle.update_input_vector(input_vector)
 
 func get_state():
@@ -42,11 +43,11 @@ func get_completion_perc():
 	var offset = curve.get_closest_offset(vehicle.global_position)
 	return offset/curve.get_baked_length()
 
-func calculate_score():
+func calculate_reward():
 	var modifier = prev_completion
 	if sign(laps_completed) == -1:
 		modifier = - (1 - prev_completion)
-	var score = laps_completed + prev_completion
+	return laps_completed + prev_completion
 
 func update_laps():
 	var completion = get_completion_perc()

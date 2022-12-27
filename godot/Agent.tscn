@@ -7,3 +7,4 @@
 script = ExtResource( 1 )
 
 [node name="Vehicle" parent="." instance=ExtResource( 2 )]
+collision_layer = 2

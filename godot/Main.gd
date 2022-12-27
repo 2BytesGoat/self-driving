@@ -5,23 +5,19 @@ export var max_stopped_frames = 420
 
 var socket: PacketPeerUDP
 var socket_host = "127.0.0.1"
-var socket_port = 4242
+var socket_port = 4240
 
 onready var agent_scene = preload("res://Agent.tscn")
 onready var agent_node = get_node("Agents")
 onready var follow_path = get_node("Path2D")
 var agents = {}
-var agents_nb = 1
+var agents_nb = 5
+
 
 func _ready():
-	spawn_agents()
+	reset_agents()
 	if udp_control:
 		_open_socket()
-
-func _input(event):
-	if event.is_action_pressed("ui_accept"):
-		print(agents["agent0"].get_state())
-		print(agents["agent0"].is_done())
 
 func _process(_delta):
 	if not (udp_control and socket):
@@ -33,11 +29,11 @@ func _process(_delta):
 
 func _open_socket():
 	socket = PacketPeerUDP.new()
-	if(socket.listen(4242, "127.0.0.1") != OK):
-		print("An error occurred listening on port 4242")
+	if(socket.listen(socket_port, socket_host) != OK):
+		print("An error occurred listening on port " + str(socket_port))
 		_close_socket()
 	else:
-		print("Listening on port 4242 on localhost")
+		print("Listening on port " + str(socket_port) + " on localhost")
 
 func _close_socket():
 	print("Close Connection")
@@ -61,18 +57,26 @@ func read_from_socket():
 	if data:
 		var command = Utils.evaluate_expression(data)
 		if command:
+			var IP_CLIENT = socket.get_packet_ip()
+			var PORT_CLIENT = socket.get_packet_port()
+			socket.set_dest_address(IP_CLIENT, PORT_CLIENT)
 			return command
 		print("Could not evaluate")
 	stop_agents()
-	
+
+func write_to_socket(data: Dictionary):
+	var pack = JSON.print(data).to_ascii()
+	socket.put_packet(pack)
+
 func execute_command(command):
 	match command["type"]:
 		"init":
-			pass
+			send_agent_info()
 		"step":
 			step(command)
+			send_agent_info()
 		"reset":
-			pass
+			reset_agents()
 		"quit":
 			_close_socket()
 
@@ -82,7 +86,33 @@ func step(command):
 		if agent_action:
 			var agent = agents[agent_name]
 			agent.do_action(Vector2(agent_action.x, agent_action.y))
-	
+
+func get_agents_info():
+	var info = {}
+	for agent_name in agents:
+		var agent = agents[agent_name]
+		info[agent_name] = {
+			"time": OS.get_ticks_msec() % 1000,
+			"state": agent.get_state(),
+			"done": agent.is_done(),
+			"reward": agent.calculate_reward()
+		}
+	return info
+
+func send_agent_info():
+	var info = get_agents_info()
+	write_to_socket(info)
+
+func clear_agents():
+	for agent_name in agents:
+		var agent = agents[agent_name]
+		agent_node.remove_child(agent)
+		agent.queue_free()
+
+func reset_agents():
+	clear_agents()
+	spawn_agents()
+
 func stop_agents():
 	for agent_name in agents:
 		agents[agent_name].do_action(Vector2.ZERO)

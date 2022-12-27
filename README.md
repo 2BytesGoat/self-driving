@@ -10,5 +10,5 @@
     - [x] reward - combination of progression and laps
     - [x] done - no velocity for **n** frames
 - [ ] build a OpenAI gym wrapper around game
-- [ ] create function to spawn multiple agents
+- [x] create function to spawn multiple agents
 - [ ] train AI using genetic algorithms
