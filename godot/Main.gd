@@ -1,18 +1,17 @@
 extends Node2D
 
+export var agents_nb = 5
 export var udp_control = false
 export var max_stopped_frames = 420
 
 var socket: PacketPeerUDP
 var socket_host = "127.0.0.1"
-var socket_port = 4240
+var socket_port = 4242
 
 onready var agent_scene = preload("res://Agent.tscn")
 onready var agent_node = get_node("Agents")
 onready var follow_path = get_node("Path2D")
 var agents = {}
-var agents_nb = 5
-
 
 func _ready():
 	reset_agents()
@@ -70,13 +69,14 @@ func write_to_socket(data: Dictionary):
 
 func execute_command(command):
 	match command["type"]:
-		"init":
-			send_agent_info()
+		"info":
+			send_env_info()
 		"step":
 			step(command)
-			send_agent_info()
+			send_agent_state()
 		"reset":
 			reset_agents()
+			send_agent_state()
 		"quit":
 			_close_socket()
 
@@ -85,22 +85,31 @@ func step(command):
 		var agent_action = command.get(agent_name, null)
 		if agent_action:
 			var agent = agents[agent_name]
-			agent.do_action(Vector2(agent_action.x, agent_action.y))
+			agent.do_action(Vector2(agent_action[0], agent_action[1]))
 
-func get_agents_info():
-	var info = {}
+func get_agents_state():
+	var state = {}
 	for agent_name in agents:
 		var agent = agents[agent_name]
-		info[agent_name] = {
+		state[agent_name] = {
 			"time": OS.get_ticks_msec() % 1000,
 			"state": agent.get_state(),
 			"done": agent.is_done(),
 			"reward": agent.calculate_reward()
 		}
-	return info
+	return state
 
-func send_agent_info():
-	var info = get_agents_info()
+func send_agent_state():
+	var state = get_agents_state()
+	write_to_socket(state)
+
+func send_env_info():
+	var agent = agents[agents.keys()[0]]
+	var info = {
+		"agents_nb": agents_nb,
+		"agent_state_shape": agent.get_state_shape(),
+		"agent_action_shape": agent.get_input_shape()
+	}
 	write_to_socket(info)
 
 func clear_agents():

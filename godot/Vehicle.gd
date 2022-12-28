@@ -43,13 +43,14 @@ func update_input_vector(new_input_vector):
 	input_vector = new_input_vector
 
 func get_sensor_status():
-	var status = {}
+	var status = []
+	status.resize(len(senzors))
 	for sensor_idx in len(senzors):
 		var sensor = senzors[sensor_idx]
-		status[sensor_idx] = ray_length
+		status[sensor_idx] = 1 # normalized value
 		if sensor.is_colliding():
 			var collision_point = sensor.get_collision_point() 
 			var difference = collision_point - self.global_position
 			var distance = sqrt(pow(difference.x, 2) + pow(difference.y, 2))
-			status[sensor_idx] = stepify(distance, 0.01)
+			status[sensor_idx] = stepify(distance, 0.01) / ray_length # normalize sensor distance
 	return status

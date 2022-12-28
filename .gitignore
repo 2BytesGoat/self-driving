@@ -14,3 +14,7 @@ export_presets.cfg
 .mono/
 data_*/
 mono_crash.*.json
+
+# Python junk
+.env/
+__pycache__

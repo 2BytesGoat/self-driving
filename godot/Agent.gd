@@ -3,7 +3,7 @@ extends Node2D
 var follow_path: Path2D
 
 var manual_control = false
-var max_stopped_frames = 420
+var max_stopped_frames = 10
 var prev_completion = 0.0
 var laps_completed = 0
 
@@ -22,11 +22,19 @@ func do_action(input_vector):
 	vehicle.update_input_vector(input_vector)
 
 func get_state():
-	var state = {}
-	state["sensors"] = vehicle.get_sensor_status()
-	state["rotation"] = stepify(vehicle.rotation, 0.01)
-	state["velocity"] = vehicle.velocity
+	var state = []
+	var vahicle_speed = vehicle.velocity / vehicle.MAX_SPEED
+	state += vehicle.get_sensor_status()
+	state += [stepify(vehicle.rotation, 0.01) / 3.14]
+	state += [vahicle_speed.x, vahicle_speed.y]
 	return state
+
+func get_state_shape():
+	return len(get_state())
+
+func get_input_shape():
+	# TODO: think of a better way to do this
+	return 2
 
 func is_done():
 	return vehicle.stopped_frames >= max_stopped_frames
