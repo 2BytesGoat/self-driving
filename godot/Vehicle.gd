@@ -57,3 +57,4 @@ func get_sensor_status():
 			var collision_point = sensor.get_collision_point()
 			var distance = Utils.get_distance(collision_point, self.global_position)
 			status[sensor_idx] = stepify(distance, 0.01)
+	return status
