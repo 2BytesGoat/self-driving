@@ -6,6 +6,7 @@ var manual_control = false
 var max_stopped_frames = 10
 var prev_completion = 0.0
 var laps_completed = 0
+var trajectory_angle = 0
 
 onready var vehicle = get_node("Vehicle")
 
@@ -18,15 +19,17 @@ func _input(event):
 		do_action(get_keyboard_input())
 
 func do_action(input_vector):
-	update_laps()
 	vehicle.update_input_vector(input_vector)
+	update_laps()
+	update_trajectory()
 
 func get_state():
 	var state = []
-	var vahicle_speed = vehicle.velocity / vehicle.MAX_SPEED
+	#var vahicle_speed = vehicle.velocity / vehicle.MAX_SPEED
 	state += vehicle.get_sensor_status()
-	state += [stepify(vehicle.rotation, 0.01) / 3.14]
-	state += [vahicle_speed.x, vahicle_speed.y]
+	#state += [stepify(vehicle.rotation, 0.01) / 3.14]
+	#state += [vahicle_speed.x, vahicle_speed.y]
+	state += [trajectory_angle] 
 	return state
 
 func get_state_shape():
@@ -37,7 +40,7 @@ func get_input_shape():
 	return 2
 
 func is_done():
-	return vehicle.stopped_frames >= max_stopped_frames
+	return vehicle.stopped_frames >= max_stopped_frames or calculate_reward() < 0
 
 func get_keyboard_input():
 	var input_vector = Vector2.ZERO
@@ -64,3 +67,8 @@ func update_laps():
 	elif prev_completion <= 0.1 and completion >= 0.95:
 		laps_completed -= 1
 	prev_completion = completion
+
+func update_trajectory():
+	var curve = follow_path.get_curve()
+	var curve_point = curve.get_closest_point(vehicle.global_position)
+	trajectory_angle = self.position.angle_to_point(curve_point)

@@ -1,8 +1,8 @@
 extends Node2D
 
-export var agents_nb = 5
+export var agents_nb = 150
 export var udp_control = false
-export var max_stopped_frames = 420
+export var max_stopped_frames = 10
 
 var socket: PacketPeerUDP
 var socket_host = "127.0.0.1"

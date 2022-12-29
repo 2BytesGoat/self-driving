@@ -11,10 +11,13 @@ const TURN_SPEED = 10
 var velocity = Vector2.ZERO
 
 var input_vector = Vector2.ZERO
+var prev_position = Vector2.ZERO
+var min_distance = 0.5
 var stopped_frames = 0
 
 func _ready():
 	_init_sensors()
+	prev_position = self.position
 
 func _physics_process(delta):
 	if input_vector != Vector2.ZERO:
@@ -25,10 +28,12 @@ func _physics_process(delta):
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 	velocity = move_and_slide(velocity)
 	
-	if velocity == Vector2.ZERO:
+	var distance = get_distance(prev_position, self.position)
+	if distance <= min_distance:
 		stopped_frames += 1
 	else:
 		stopped_frames = 0
+	prev_position = self.position
 
 func _init_sensors():
 	for i in range(ray_number):
@@ -47,10 +52,13 @@ func get_sensor_status():
 	status.resize(len(senzors))
 	for sensor_idx in len(senzors):
 		var sensor = senzors[sensor_idx]
-		status[sensor_idx] = 1 # normalized value
+		status[sensor_idx] = ray_length
 		if sensor.is_colliding():
-			var collision_point = sensor.get_collision_point() 
-			var difference = collision_point - self.global_position
-			var distance = sqrt(pow(difference.x, 2) + pow(difference.y, 2))
-			status[sensor_idx] = stepify(distance, 0.01) / ray_length # normalize sensor distance
+			var collision_point = sensor.get_collision_point()
+			var distance = get_distance(collision_point, self.global_position)
+			status[sensor_idx] = stepify(distance, 0.01)
 	return status
+
+func get_distance(vect1, vect2):
+	var difference = vect1 - vect2
+	return sqrt(pow(difference.x, 2) + pow(difference.y, 2))

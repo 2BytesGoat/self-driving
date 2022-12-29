@@ -18,3 +18,4 @@ mono_crash.*.json
 # Python junk
 .env/
 __pycache__
+*/neat-checkpoint-*

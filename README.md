@@ -12,8 +12,8 @@
 - [x] build a OpenAI gym wrapper around game
 - [x] create function to spawn multiple agents
 - [ ] tackle multiple agents in single run
-    - [ ] fix - running for only one generation
-    - [ ] fix - done condition and stagnation does not seem to work
-    - [ ] use godot env info/init godot enb with config info
+    - [x] fix - running for only one generation
+    - [x] fix - done condition and stagnation does not seem to work
+    - [ ] use godot env info/init godot env with config info
     - [ ] batch genomes for single run
-- [ ] train AI using genetic algorithms
+- [ ] obtain AI using genetic algorithms

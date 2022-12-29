@@ -2,7 +2,7 @@ import pickle
 import neat
 
 class NeatTrainer:
-    def __init__(self, env, config_file, episode_len=420):
+    def __init__(self, env, config_file, checkpoint=None, episode_len=420):
         self.env = env
         self.episode_len = episode_len
 
@@ -14,27 +14,54 @@ class NeatTrainer:
         # Create the population, which is the top-level object for a NEAT run.
         self.population = neat.Population(config)
 
+        if checkpoint:
+            self.population = neat.Checkpointer.restore_checkpoint(checkpoint)
+
         # Add a stdout reporter to show progress in the terminal.
         self.population.add_reporter(neat.StdOutReporter(True))
         self.stats = neat.StatisticsReporter()
         self.population.add_reporter(self.stats)
         self.population.add_reporter(neat.Checkpointer(5))
 
+    def batch_genomes(self, genomes, n=1):
+        l = len(genomes)
+        for ndx in range(0, l, n):
+            yield genomes[ndx:min(ndx + n, l)]
+
     def eval_genomes(self, genomes, config):
-        for genome_id, genome in genomes:
-            genome.fitness = 0.0
-            net = neat.nn.FeedForwardNetwork.create(genome, config)
+        nb_agents = self.env.env_info["agents_nb"]
+
+        for genome_batch in self.batch_genomes(genomes, nb_agents):
+            # initialize genome networks
+            genome_nets = [
+                neat.nn.FeedForwardNetwork.create(genome, config) 
+                for _, genome in genome_batch
+            ]
             state = self.env.reset()
+
             # consider replacing episode_len with config stagnation
             for step_n in range(self.episode_len):
-                state = state["agent0"]["state"]
-                action = {"agent0": net.activate(state)}
+                done_cnt = 0 # count how many genomes/agents are done
+                action = {}
+                # may be lesser genomes in one batch due to mutations
+                for genome_idx in range(len(genome_nets)):
+                    agent_name = f"agent{genome_idx}"
+                    done = state[agent_name]["done"]
+                    if done: # skipe genome/agent if it's done
+                        done_cnt += 1
+                        continue
+                    agent_state = state[agent_name]["state"]
+                    # get action for agent based on network
+                    action[agent_name] = genome_nets[genome_idx].activate(agent_state)
+                if done_cnt == nb_agents: # if all genomes/agents are done stop
+                    break 
                 state = self.env.step(action)
-                reward = state["agent0"]["reward"]
-                done = state["agent0"]["done"]
-                genome.fitness += reward
-                if done:
-                    break
+
+            for genome_idx in range(len(genome_nets)):
+                agent_name = f"agent{genome_idx}"
+                reward = state[agent_name]["reward"]
+                genome_idx, genome = genome_batch[genome_idx]
+                genome.fitness = reward
 
     def find_winner(self):
         # Run for up to 300 generations.
