@@ -1,16 +1,16 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Assets/Tilesets/road-00/tileset_road-00.tres" type="TileSet" id=2]
 [ext_resource path="res://Main.gd" type="Script" id=3]
+[ext_resource path="res://NavigationPath.gd" type="Script" id=5]
 
 [sub_resource type="Curve2D" id=1]
 _data = {
-"points": PoolVector2Array( 0, 0, 0, 0, 231, 152, 0, 0, 0, 0, 303, 150, 0, 0, 0, 0, 378, 81, 0, 0, 0, 0, 528, 77, 0, 0, 0, 0, 595, 139, 0, 0, 0, 0, 599, 280, 0, 0, 0, 0, 544, 341, 0, 0, 0, 0, 360, 349, 0, 0, 0, 0, 300, 436, 0, 0, 0, 0, 155, 442, 0, 0, 0, 0, 153, 372, 0, 0, 0, 0, 195, 322, 0, 0, 0, 0, 194, 268, 0, 0, 0, 0, 157, 231, 0, 0, 0, 0, 149, 192, 0, 0, 0, 0, 167, 162, 0, 0, 0, 0, 231, 152 )
+"points": PoolVector2Array( 0, 0, 0, 0, 231, 152, 0, 0, 0, 0, 303, 150, 0, 0, 0, 0, 378, 81, 0, 0, 0, 0, 528, 77, 0, 0, 0, 0, 595, 139, 0, 0, 0, 0, 599, 280, 0, 0, 0, 0, 544, 341, 0, 0, 0, 0, 360, 349, 0, 0, 0, 0, 302, 437, 0, 0, 0, 0, 231, 445, 0, 0, 0, 0, 152, 435, 0, 0, 0, 0, 154, 387, 0, 0, 0, 0, 195, 322, 0, 0, 0, 0, 194, 268, 0, 0, 0, 0, 157, 231, 0, 0, 0, 0, 149, 192, 0, 0, 0, 0, 167, 162, 0, 0, 0, 0, 231, 152 )
 }
 
 [node name="Main" type="Node2D"]
 script = ExtResource( 3 )
-udp_control = true
 
 [node name="Road" type="TileMap" parent="."]
 tile_set = ExtResource( 2 )
@@ -21,5 +21,9 @@ tile_data = PoolIntArray( 65541, 1, 0, 65542, 1, 1, 65543, 1, 1, 65544, 1, 1, 65
 
 [node name="Path2D" type="Path2D" parent="."]
 curve = SubResource( 1 )
+script = ExtResource( 5 )
+
+[node name="Checkpoints" type="Node2D" parent="Path2D"]
 
 [node name="Agents" type="Node2D" parent="."]
+modulate = Color( 1, 1, 1, 0.768627 )

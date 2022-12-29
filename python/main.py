@@ -3,7 +3,7 @@ import os
 from godot_environment import GodotEnv
 from neat_trainer import NeatTrainer
  
-EPISODE_LEN = 1000
+EPISODE_LEN = 420
 CONFIG_FILE = r"configs\neat.cfg"
 CHECKPOINT_FILE = None
 

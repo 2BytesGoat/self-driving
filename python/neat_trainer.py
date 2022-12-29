@@ -41,16 +41,21 @@ class NeatTrainer:
 
             # consider replacing episode_len with config stagnation
             for step_n in range(self.episode_len):
+                if not state:
+                    continue
                 done_cnt = 0 # count how many genomes/agents are done
                 action = {}
                 # may be lesser genomes in one batch due to mutations
                 for genome_idx in range(len(genome_nets)):
                     agent_name = f"agent{genome_idx}"
-                    done = state[agent_name]["done"]
+                    agent_state = state.get(agent_name, None)
+                    if not agent_state:
+                        continue
+                    done = agent_state["done"]
                     if done: # skipe genome/agent if it's done
                         done_cnt += 1
                         continue
-                    agent_state = state[agent_name]["state"]
+                    agent_state = agent_state["state"]
                     # get action for agent based on network
                     action[agent_name] = genome_nets[genome_idx].activate(agent_state)
                 if done_cnt == nb_agents: # if all genomes/agents are done stop
@@ -59,6 +64,9 @@ class NeatTrainer:
 
             for genome_idx in range(len(genome_nets)):
                 agent_name = f"agent{genome_idx}"
+                agent_state = state.get(agent_name, None)
+                if not agent_state:
+                    continue
                 reward = state[agent_name]["reward"]
                 genome_idx, genome = genome_batch[genome_idx]
                 genome.fitness = reward

@@ -1,6 +1,6 @@
 extends KinematicBody2D
 
-var ray_number = 8
+var ray_number = 3
 var ray_length = 40
 var senzors = []
 
@@ -28,7 +28,7 @@ func _physics_process(delta):
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 	velocity = move_and_slide(velocity)
 	
-	var distance = get_distance(prev_position, self.position)
+	var distance = Utils.get_distance(prev_position, self.position)
 	if distance <= min_distance:
 		stopped_frames += 1
 	else:
@@ -36,8 +36,8 @@ func _physics_process(delta):
 	prev_position = self.position
 
 func _init_sensors():
-	for i in range(ray_number):
-		var ray_angle = i * 2 * PI / ray_number
+	for i in range(0, ray_number):
+		var ray_angle = i * PI / (ray_number-1)
 		var ray = RayCast2D.new()
 		ray.set_cast_to(Vector2.UP.rotated(ray_angle) * ray_length)
 		ray.enabled = true
@@ -55,10 +55,5 @@ func get_sensor_status():
 		status[sensor_idx] = ray_length
 		if sensor.is_colliding():
 			var collision_point = sensor.get_collision_point()
-			var distance = get_distance(collision_point, self.global_position)
+			var distance = Utils.get_distance(collision_point, self.global_position)
 			status[sensor_idx] = stepify(distance, 0.01)
-	return status
-
-func get_distance(vect1, vect2):
-	var difference = vect1 - vect2
-	return sqrt(pow(difference.x, 2) + pow(difference.y, 2))

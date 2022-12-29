@@ -37,6 +37,8 @@ class GodotEnv:
         self.client_socket.sendto(message.encode(), self.addr)
 
     def _read_message(self):
-        enc_state, _ = self.client_socket.recvfrom(1024*24)
+        enc_state, _ = self.client_socket.recvfrom(1024*18)
+        if not enc_state:
+            return None
         state = json.loads(enc_state.decode())
         return state

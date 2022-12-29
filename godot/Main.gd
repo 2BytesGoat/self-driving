@@ -1,6 +1,6 @@
 extends Node2D
 
-export var agents_nb = 150
+export var agents_nb = 50
 export var udp_control = false
 export var max_stopped_frames = 10
 

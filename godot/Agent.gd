@@ -1,12 +1,14 @@
 extends Node2D
 
-var follow_path: Path2D
-
+var follow_path: Node2D
+#export(NodePath) onready var follow_path = get_node(follow_path)
 var manual_control = false
+
 var max_stopped_frames = 10
 var prev_completion = 0.0
+var checkpoint_obj = null
 var laps_completed = 0
-var trajectory_angle = 0
+var trajectory = 0.0
 
 onready var vehicle = get_node("Vehicle")
 
@@ -25,11 +27,11 @@ func do_action(input_vector):
 
 func get_state():
 	var state = []
-	#var vahicle_speed = vehicle.velocity / vehicle.MAX_SPEED
+	# var vahicle_speed = vehicle.velocity / vehicle.MAX_SPEED
 	state += vehicle.get_sensor_status()
-	#state += [stepify(vehicle.rotation, 0.01) / 3.14]
-	#state += [vahicle_speed.x, vahicle_speed.y]
-	state += [trajectory_angle] 
+	# tells you if moving backward
+	state += [sign(get_completion_perc() - prev_completion)]
+	state += [trajectory] 
 	return state
 
 func get_state_shape():
@@ -69,6 +71,9 @@ func update_laps():
 	prev_completion = completion
 
 func update_trajectory():
-	var curve = follow_path.get_curve()
-	var curve_point = curve.get_closest_point(vehicle.global_position)
-	trajectory_angle = self.position.angle_to_point(curve_point)
+	if checkpoint_obj:
+		var angle = vehicle.get_angle_to(checkpoint_obj.next_checkpoint)
+		trajectory = vehicle.rotation + angle
+
+func _on_Area2D_area_entered(area):
+	checkpoint_obj = area.get_parent()

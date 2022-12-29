@@ -19,3 +19,4 @@ mono_crash.*.json
 .env/
 __pycache__
 */neat-checkpoint-*
+checkpoints/
