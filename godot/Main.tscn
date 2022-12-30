@@ -11,6 +11,7 @@ _data = {
 
 [node name="Main" type="Node2D"]
 script = ExtResource( 3 )
+agents_nb = 200
 udp_control = true
 
 [node name="Road" type="TileMap" parent="."]

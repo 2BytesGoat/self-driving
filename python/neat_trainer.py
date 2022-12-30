@@ -32,20 +32,25 @@ class NeatTrainer:
         nb_agents = self.env.env_info["agents_nb"]
 
         for genome_batch in self.batch_genomes(genomes, nb_agents):
+            genome_nets = []
             # initialize genome networks
-            genome_nets = [
-                neat.nn.FeedForwardNetwork.create(genome, config) 
-                for _, genome in genome_batch
-            ]
+            for _, genome in genome_batch:
+                genome.fitness = 0
+                net = neat.nn.FeedForwardNetwork.create(genome, config) 
+                genome_nets.append(net)
+            
             state = self.env.reset()
-
+            ignore_episode = False
             # consider replacing episode_len with config stagnation
             for step_n in range(self.episode_len):
+                # state may be absent because of package loss
+                # TODO: replace UDP with TCP
                 if not state:
-                    continue
+                    ignore_episode = True
+                    break
                 done_cnt = 0 # count how many genomes/agents are done
                 action = {}
-                # may be lesser genomes in one batch due to mutations
+                # may be lesser genomes in one batch due to uneven split
                 for genome_idx in range(len(genome_nets)):
                     agent_name = f"agent{genome_idx}"
                     agent_state = state.get(agent_name, None)
@@ -62,18 +67,21 @@ class NeatTrainer:
                     break 
                 state = self.env.step(action)
 
+            if ignore_episode:
+                continue
+
             for genome_idx in range(len(genome_nets)):
                 agent_name = f"agent{genome_idx}"
                 agent_state = state.get(agent_name, None)
                 if not agent_state:
                     continue
                 reward = state[agent_name]["reward"]
-                genome_idx, genome = genome_batch[genome_idx]
+                _, genome = genome_batch[genome_idx]
                 genome.fitness = reward
 
-    def find_winner(self):
+    def find_winner(self, generations=300):
         # Run for up to 300 generations.
-        winner = self.population.run(self.eval_genomes, 300)
+        winner = self.population.run(self.eval_genomes, generations)
 
         # Display the winning genome.
         print('\nBest genome:\n{!s}'.format(winner))

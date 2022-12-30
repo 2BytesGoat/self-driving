@@ -1,7 +1,6 @@
 extends Node2D
 
 var follow_path: Node2D
-#export(NodePath) onready var follow_path = get_node(follow_path)
 var manual_control = false
 
 var max_stopped_frames = 10
@@ -9,6 +8,7 @@ var prev_completion = 0.0
 var checkpoint_obj = null
 var laps_completed = 0
 var trajectory = 0.0
+var dist = 1
 
 onready var vehicle = get_node("Vehicle")
 
@@ -19,6 +19,7 @@ func _ready():
 func _input(event):
 	if manual_control:
 		do_action(get_keyboard_input())
+		print(get_state())
 
 func do_action(input_vector):
 	vehicle.update_input_vector(input_vector)
@@ -27,11 +28,13 @@ func do_action(input_vector):
 
 func get_state():
 	var state = []
-	# var vahicle_speed = vehicle.velocity / vehicle.MAX_SPEED
-	state += vehicle.get_sensor_status()
-	# tells you if moving backward
-	state += [sign(get_completion_perc() - prev_completion)]
-	state += [trajectory] 
+	var distance = 1
+	if checkpoint_obj:
+		distance = Utils.get_distance(vehicle.global_position, checkpoint_obj.next_checkpoint)
+	# state += vehicle.get_sensor_status()
+	state += [vehicle.rotation]
+	state += [trajectory]
+	state += [distance / 100]
 	return state
 
 func get_state_shape():
@@ -72,8 +75,8 @@ func update_laps():
 
 func update_trajectory():
 	if checkpoint_obj:
-		var angle = vehicle.get_angle_to(checkpoint_obj.next_checkpoint)
-		trajectory = vehicle.rotation + angle
+		trajectory = vehicle.to_local(checkpoint_obj.next_checkpoint * vehicle.get_scale()).angle()
+		get_state()
 
 func _on_Area2D_area_entered(area):
 	checkpoint_obj = area.get_parent()

@@ -3,7 +3,8 @@ import os
 from godot_environment import GodotEnv
 from neat_trainer import NeatTrainer
  
-EPISODE_LEN = 420
+EPISODE_LEN = 1000
+GENERATIONS = 3000
 CONFIG_FILE = r"configs\neat.cfg"
 CHECKPOINT_FILE = None
 
@@ -13,4 +14,4 @@ checkpoint_path = None if not CHECKPOINT_FILE else os.path.join(local_dir, CHECK
 
 env = GodotEnv()
 neat = NeatTrainer(env, config_path, checkpoint_path, EPISODE_LEN)
-neat.find_winner()
+neat.find_winner(GENERATIONS)

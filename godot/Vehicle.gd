@@ -1,6 +1,6 @@
 extends KinematicBody2D
 
-var ray_number = 3
+var ray_number = 8
 var ray_length = 40
 var senzors = []
 
@@ -37,7 +37,7 @@ func _physics_process(delta):
 
 func _init_sensors():
 	for i in range(0, ray_number):
-		var ray_angle = i * PI / (ray_number-1)
+		var ray_angle = i * 2 * PI / (ray_number)
 		var ray = RayCast2D.new()
 		ray.set_cast_to(Vector2.UP.rotated(ray_angle) * ray_length)
 		ray.enabled = true

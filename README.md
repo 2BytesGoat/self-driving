@@ -15,8 +15,8 @@
     - [x] fix - running for only one generation
     - [x] fix - done condition and stagnation does not seem to work
     - [x] batch genomes for single run
-- [ ] fix agent state to be descriptive enough
-- [ ] obtain AI using genetic algorithms
+- [x] fix agent state to be descriptive enough
+- [x] obtain AI using genetic algorithms
 
 ## After MVP
 - [ ] replace UDP communication with TCP to fix package loss
