@@ -21,8 +21,8 @@ class GodotEnv:
         state = self._read_message()
         return state
 
-    def reset(self):
-        action = {"type": "reset"}
+    def reset(self, agents_nb):
+        action = {"type": "reset", "agents_nb": agents_nb}
         self._send_message(str(action))
         state = self._read_message()
         return state
@@ -37,7 +37,7 @@ class GodotEnv:
         self.client_socket.sendto(message.encode(), self.addr)
 
     def _read_message(self):
-        enc_state, _ = self.client_socket.recvfrom(1024*30)
+        enc_state, _ = self.client_socket.recvfrom(1024*100)
         if not enc_state:
             return None
         try:

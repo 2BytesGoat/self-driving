@@ -4,8 +4,8 @@ from godot_environment import GodotEnv
 from neat_trainer import NeatTrainer
  
 EPISODE_LEN = 1000
-GENERATIONS = 3000
-CONFIG_FILE = r"configs\neat.cfg"
+GENERATIONS = 300
+CONFIG_FILE = "configs/neat.cfg"
 CHECKPOINT_FILE = None
 
 local_dir = os.path.dirname(__file__)
@@ -14,4 +14,14 @@ checkpoint_path = None if not CHECKPOINT_FILE else os.path.join(local_dir, CHECK
 
 env = GodotEnv()
 neat = NeatTrainer(env, config_path, checkpoint_path, EPISODE_LEN)
-neat.find_winner(GENERATIONS)
+winner = neat.find_winner(GENERATIONS)
+
+# TODO: add call to get node names from Godot
+node_names = {
+    -1: 'Agent Rotation', 
+    -2: 'Trajectory Rad',
+    -3: 'Distance', 
+    0: 'Direction X',
+    1: 'Direction Y'
+}
+neat.visualize_winner(winner, node_names)

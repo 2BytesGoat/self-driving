@@ -8,10 +8,9 @@ var socket: PacketPeerUDP
 var socket_host = "127.0.0.1"
 var socket_port = 4242
 
-onready var agent_scene = preload("res://Agent.tscn")
+onready var agent_scene = preload("res://Agents/Agent.tscn")
 onready var agent_node = get_node("Agents")
 onready var follow_path = get_node("Path2D")
-var agents = {}
 
 func _ready():
 	reset_agents()
@@ -48,8 +47,8 @@ func spawn_agents():
 		agent.follow_path = follow_path
 		agent.manual_control = not udp_control
 		agent.max_stopped_frames = max_stopped_frames
+		agent.name = agent_name
 		agent_node.add_child(agent)
-		agents[agent_name] = agent
 
 func read_from_socket():
 	var data = socket.get_packet().get_string_from_ascii()
@@ -75,26 +74,25 @@ func execute_command(command):
 			step(command)
 			send_agent_state()
 		"reset":
+			agents_nb = command["agents_nb"]
 			reset_agents()
 			send_agent_state()
 		"quit":
 			_close_socket()
 
 func step(command):
-	for agent_name in agents:
-		var agent_action = command.get(agent_name, null)
+	for agent in agent_node.get_children():
+		var agent_action = command.get(agent.name, null)
 		if agent_action:
-			var agent = agents[agent_name]
 			agent.do_action(Vector2(agent_action[0], agent_action[1]))
 
 func get_agents_state():
 	var state = {}
-	for agent_name in agents:
-		var agent = agents[agent_name]
-		state[agent_name] = {
+	for agent in agent_node.get_children():
+		state[agent.name] = {
 			"time": OS.get_ticks_msec() % 1000,
-			"state": agent.get_state(),
-			"done": agent.is_done(),
+			"state": agent.state,
+			"done": agent.done,
 			"reward": agent.calculate_reward()
 		}
 	return state
@@ -104,7 +102,7 @@ func send_agent_state():
 	write_to_socket(state)
 
 func send_env_info():
-	var agent = agents[agents.keys()[0]]
+	var agent = agent_node.get_children()[0]
 	var info = {
 		"agents_nb": agents_nb,
 		"agent_state_shape": agent.get_state_shape(),
@@ -113,8 +111,7 @@ func send_env_info():
 	write_to_socket(info)
 
 func clear_agents():
-	for agent_name in agents:
-		var agent = agents[agent_name]
+	for agent in agent_node.get_children():
 		agent_node.remove_child(agent)
 		agent.queue_free()
 
@@ -123,5 +120,5 @@ func reset_agents():
 	spawn_agents()
 
 func stop_agents():
-	for agent_name in agents:
-		agents[agent_name].do_action(Vector2.ZERO)
+	for agent in agent_node.get_children():
+		agent.do_action(Vector2.ZERO)

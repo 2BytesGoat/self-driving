@@ -10,14 +10,13 @@ const FRICTION = 1000
 const TURN_SPEED = 10
 var velocity = Vector2.ZERO
 
+onready var sprite = get_node("Sprite")
+
 var input_vector = Vector2.ZERO
-var prev_position = Vector2.ZERO
-var min_distance = 0.5
 var stopped_frames = 0
 
 func _ready():
 	_init_sensors()
-	prev_position = self.position
 
 func _physics_process(delta):
 	if input_vector != Vector2.ZERO:
@@ -28,12 +27,7 @@ func _physics_process(delta):
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 	velocity = move_and_slide(velocity)
 	
-	var distance = Utils.get_distance(prev_position, self.position)
-	if distance <= min_distance:
-		stopped_frames += 1
-	else:
-		stopped_frames = 0
-	prev_position = self.position
+	count_stopped_frames()
 
 func _init_sensors():
 	for i in range(0, ray_number):
@@ -58,3 +52,13 @@ func get_sensor_status():
 			var distance = Utils.get_distance(collision_point, self.global_position)
 			status[sensor_idx] = stepify(distance, 0.01)
 	return status
+
+func count_stopped_frames():
+	var min_speed = MAX_SPEED * 0.25
+	if abs(velocity.x) >= min_speed or abs(velocity.y) >= min_speed:
+		stopped_frames = 0
+	else:
+		stopped_frames += 1
+
+func mark_as_stopped():
+	sprite.modulate = Color( 1, 0, 0, 0.3 )
