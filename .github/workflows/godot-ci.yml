@@ -25,12 +25,12 @@ jobs:
         run: |
           mkdir -v -p ~/.local/share/godot/templates
           mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
-      - name: Windows Build
+      - name: Windows build
         run: |
           mkdir -v -p build/windows
           cd $PROJECT_PATH
           godot -v --export "Windows Desktop" ../build/windows/$EXPORT_NAME.exe
-      - name: Upload Artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
           name: windows-build
@@ -48,8 +48,8 @@ jobs:
         uses: thedoctor0/zip-release@master
         with:
           filename: windows-build.zip
-      - name: Create Release
-        id: create_release
+      - name: Create new release
+        id: create-new-release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }} # This token is provided by Actions, you do not need to create your own token
@@ -61,3 +61,12 @@ jobs:
             - Need to add this based on changelog or smt
           draft: false
           prerelease: false
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-new-release.outputs.upload_url }}
+          asset_path: ./windows-build.zip
+          asset_name: windows-v${{ github.ref }}.zip
+          asset_content_type: application/zip
