@@ -1,0 +1,109 @@
+name: "godot-ci export"
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+env:
+  GODOT_VERSION: 3.5.1
+  EXPORT_NAME: self-driving
+  PROJECT_PATH: godot
+  
+jobs:
+  export-windows:
+    name: Windows Export
+    runs-on: ubuntu-20.04
+    container:
+      image: barichello/godot-ci:3.5.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Setup
+        run: |
+          mkdir -v -p ~/.local/share/godot/templates
+          mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
+      - name: Windows build
+        run: |
+          mkdir -v -p build/windows
+          cd $PROJECT_PATH
+          godot -v --export "Windows Desktop" ../build/windows/$EXPORT_NAME.exe
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: windows-build
+          path: build/windows
+
+  export-mac:
+    name: Mac Export
+    runs-on: ubuntu-20.04
+    container:
+      image: barichello/godot-ci:3.5.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Setup
+        run: |
+          mkdir -v -p ~/.local/share/godot/templates
+          mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
+      - name: Mac Build
+        run: |
+          mkdir -v -p build/mac
+          cd $PROJECT_PATH
+          godot -v --export "Mac OSX" ../build/mac/mac-build.zip
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: mac-build
+          path: build/mac
+          
+  release-project:
+    name: Release Project
+    runs-on: ubuntu-latest
+    needs: [export-windows, export-mac]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Archive windows build
+        uses: montudor/action-zip@v1
+        with:
+          args: zip -qq -r windows-build.zip windows-build
+
+      - name: Create new release
+        id: create-new-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this Release
+            - Lorem ipsum
+          draft: false
+          prerelease: false
+
+      - name: Upload windows assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-new-release.outputs.upload_url }}
+          asset_path: ./windows-build.zip
+          asset_name: windows-build.zip
+          asset_content_type: application/zip
+
+      - name: Upload max assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-new-release.outputs.upload_url }}
+          asset_path: ./mac-build/mac-build.zip
+          asset_name: mac-build.zip
+          asset_content_type: application/zip

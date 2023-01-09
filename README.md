@@ -9,3 +9,7 @@ Exploring ways to create AIs capable of completing as many laps as possible.
 - [ ] Reinforcement learning
 
 ![gif](docs/Animation.gif)
+
+## Code sources
+* Genetic algorithms - https://github.com/CodeReclaimers/neat-python
+* CI/CD pipelines - https://github.com/abarichello/godot-ci
