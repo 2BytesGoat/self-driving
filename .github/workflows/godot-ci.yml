@@ -7,7 +7,7 @@ on:
 
 env:
   GODOT_VERSION: 3.5.1
-  EXPORT_NAME: godot
+  EXPORT_NAME: self-driving
   PROJECT_PATH: godot
   
 jobs:
@@ -54,7 +54,7 @@ jobs:
         run: |
           mkdir -v -p build/mac
           cd $PROJECT_PATH
-          godot -v --export "Mac OSX" ../build/mac/$EXPORT_NAME.zip
+          godot -v --export "Mac OSX" ../build/mac/mac-build.zip
       - name: Upload Artifact
         uses: actions/upload-artifact@v1
         with:
@@ -70,6 +70,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           names: windows-build
+
+      - name: Archive windows build
+        uses: thedoctor0/zip-release@master
+        with:
+          filename: windows-build.zip
 
       - name: Download mac artifact
         uses: actions/download-artifact@v3
@@ -90,11 +95,6 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Archive windows build
-        uses: thedoctor0/zip-release@master
-        with:
-          filename: windows-build.zip
-
       - name: Upload windows assets
         uses: actions/upload-release-asset@v1
         env:
@@ -104,11 +104,6 @@ jobs:
           asset_path: ./windows-build.zip
           asset_name: ./windows-build.zip
           asset_content_type: application/zip
-
-      - name: Archive mac build
-        uses: thedoctor0/zip-release@master
-        with:
-          filename: mac-build.zip
 
       - name: Upload max assets
         uses: actions/upload-release-asset@v1
