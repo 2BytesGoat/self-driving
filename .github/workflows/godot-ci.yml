@@ -33,8 +33,21 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v1
         with:
-          name: windows
+          name: windows-build
           path: build/windows
+  release-project:
+    name: Release Project
+    runs-on: ubuntu-latest
+    needs: export-windows
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-build
+      - name: Archive build content
+        uses: thedoctor0/zip-release@master
+        with:
+          filename: windows-build.zip
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
