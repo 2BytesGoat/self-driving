@@ -66,12 +66,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: [export-windows, export-mac]
     steps:
-      - name: Download artifact
+      - name: Download windows artifact
         uses: actions/download-artifact@v3
         with:
-          name: |
-            windows-build
-            mac-build
+          names: windows-build
+
+      - name: Download mac artifact
+        uses: actions/download-artifact@v3
+        with:
+          names: mac-build
 
       - name: Create new release
         id: create-new-release
