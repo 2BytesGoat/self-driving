@@ -11,7 +11,6 @@ _data = {
 
 [node name="Main" type="Node2D"]
 script = ExtResource( 3 )
-udp_control = true
 
 [node name="Road" type="TileMap" parent="."]
 tile_set = ExtResource( 2 )
@@ -30,16 +29,121 @@ script = ExtResource( 5 )
 modulate = Color( 1, 1, 1, 0.768627 )
 
 [node name="Control" type="Control" parent="."]
-margin_right = 1024.0
-margin_bottom = 600.0
+margin_left = 4.0
+margin_top = 4.0
+margin_right = 1020.0
+margin_bottom = 596.0
 __meta__ = {
 "_edit_group_": true
 }
 
-[node name="CheckButton" type="CheckButton" parent="Control"]
-margin_left = 848.0
-margin_right = 1024.0
-margin_bottom = 40.0
-text = "Manual Control"
+[node name="VBoxContainer" type="VBoxContainer" parent="Control"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -291.0
 
-[connection signal="toggled" from="Control/CheckButton" to="." method="_on_CheckButton_toggled"]
+[node name="ManualControl" type="HBoxContainer" parent="Control/VBoxContainer"]
+margin_right = 291.0
+margin_bottom = 40.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Control/VBoxContainer/ManualControl"]
+margin_top = 12.0
+margin_right = 211.0
+margin_bottom = 27.0
+size_flags_horizontal = 3
+size_flags_vertical = 4
+bbcode_enabled = true
+text = "Remote Control"
+fit_content_height = true
+
+[node name="CheckButton" type="CheckButton" parent="Control/VBoxContainer/ManualControl"]
+margin_left = 215.0
+margin_right = 291.0
+margin_bottom = 40.0
+
+[node name="IPNumber" type="HBoxContainer" parent="Control/VBoxContainer"]
+margin_top = 44.0
+margin_right = 291.0
+margin_bottom = 68.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Control/VBoxContainer/IPNumber"]
+margin_top = 4.0
+margin_right = 104.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+size_flags_vertical = 4
+text = "IP"
+fit_content_height = true
+
+[node name="LineEdit" type="LineEdit" parent="Control/VBoxContainer/IPNumber"]
+margin_left = 108.0
+margin_right = 291.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.75
+align = 1
+placeholder_text = "127.0.0.1"
+
+[node name="PortNumber" type="HBoxContainer" parent="Control/VBoxContainer"]
+margin_top = 72.0
+margin_right = 291.0
+margin_bottom = 96.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Control/VBoxContainer/PortNumber"]
+margin_top = 4.0
+margin_right = 104.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+size_flags_vertical = 4
+text = "Port"
+fit_content_height = true
+
+[node name="LineEdit" type="LineEdit" parent="Control/VBoxContainer/PortNumber"]
+margin_left = 108.0
+margin_right = 291.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.75
+align = 1
+placeholder_text = "4242"
+
+[node name="HSeparator" type="HSeparator" parent="Control/VBoxContainer"]
+margin_top = 100.0
+margin_right = 291.0
+margin_bottom = 110.0
+custom_constants/separation = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/VBoxContainer"]
+margin_top = 114.0
+margin_right = 291.0
+margin_bottom = 134.0
+custom_constants/separation = 35
+alignment = 1
+
+[node name="Previous" type="Button" parent="Control/VBoxContainer/HBoxContainer"]
+margin_right = 73.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+text = "<"
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Control/VBoxContainer/HBoxContainer"]
+margin_left = 108.0
+margin_top = 2.0
+margin_right = 182.0
+margin_bottom = 17.0
+size_flags_horizontal = 3
+size_flags_vertical = 4
+bbcode_enabled = true
+bbcode_text = "[center]Agent 999[/center]"
+text = "Agent 999"
+fit_content_height = true
+
+[node name="Next" type="Button" parent="Control/VBoxContainer/HBoxContainer"]
+margin_left = 217.0
+margin_right = 291.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+text = ">"
+
+[connection signal="toggled" from="Control/VBoxContainer/ManualControl/CheckButton" to="." method="_on_CheckButton_toggled"]

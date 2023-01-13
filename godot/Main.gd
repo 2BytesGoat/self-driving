@@ -12,6 +12,9 @@ onready var agent_scene = preload("res://Agents/Agent.tscn")
 onready var agent_node = get_node("Agents")
 onready var follow_path = get_node("Path2D")
 
+onready var socket_host_node = get_node("Control/VBoxContainer/IPNumber/LineEdit")
+onready var socket_port_node = get_node("Control/VBoxContainer/PortNumber/LineEdit")
+
 func _ready():
 	reset_agents()
 	reset_connection()
@@ -30,7 +33,7 @@ func _open_socket():
 		print("An error occurred listening on port " + str(socket_port))
 		_close_socket()
 	else:
-		print("Listening on port " + str(socket_port) + " on localhost")
+		print("Listening on " + str(socket_host) + ":" + str(socket_port))
 
 func _close_socket():
 	if socket:
@@ -128,11 +131,17 @@ func reset_agents():
 
 func reset_connection():
 	if udp_control:
+		socket_host = socket_host_node.text
+		if not socket_host:
+			socket_host = socket_host_node.placeholder_text
+		socket_port = int(socket_port_node.text)
+		if not socket_port:
+			socket_port = int(socket_port_node.placeholder_text)
 		_open_socket()
 	else:
 		_close_socket()
 
 func _on_CheckButton_toggled(button_pressed):
-	udp_control = not button_pressed
+	udp_control = button_pressed
 	reset_agents()
 	reset_connection()
