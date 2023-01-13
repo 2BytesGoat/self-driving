@@ -11,7 +11,6 @@ _data = {
 
 [node name="Main" type="Node2D"]
 script = ExtResource( 3 )
-agents_nb = 200
 udp_control = true
 
 [node name="Road" type="TileMap" parent="."]
@@ -29,3 +28,18 @@ script = ExtResource( 5 )
 
 [node name="Agents" type="Node2D" parent="."]
 modulate = Color( 1, 1, 1, 0.768627 )
+
+[node name="Control" type="Control" parent="."]
+margin_right = 1024.0
+margin_bottom = 600.0
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="CheckButton" type="CheckButton" parent="Control"]
+margin_left = 848.0
+margin_right = 1024.0
+margin_bottom = 40.0
+text = "Manual Control"
+
+[connection signal="toggled" from="Control/CheckButton" to="." method="_on_CheckButton_toggled"]

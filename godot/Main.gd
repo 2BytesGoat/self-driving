@@ -1,6 +1,6 @@
 extends Node2D
 
-export var agents_nb = 50
+export var ai_agents_nb = 50
 export var udp_control = false
 export var max_stopped_frames = 10
 
@@ -14,8 +14,7 @@ onready var follow_path = get_node("Path2D")
 
 func _ready():
 	reset_agents()
-	if udp_control:
-		_open_socket()
+	reset_connection()
 
 func _process(_delta):
 	if not (udp_control and socket):
@@ -34,11 +33,12 @@ func _open_socket():
 		print("Listening on port " + str(socket_port) + " on localhost")
 
 func _close_socket():
-	print("Close Connection")
-	socket.close()
-	socket = null
+	if socket:
+		print("Close Connection")
+		socket.close()
+		socket = null
 
-func spawn_agents():
+func spawn_agents(agents_nb, stopped_frames):
 	var agent_spawn = follow_path.curve.get_baked_points()[0]
 	for i in agents_nb:
 		var agent_name = "agent" + str(i)
@@ -46,7 +46,7 @@ func spawn_agents():
 		agent.position = agent_spawn
 		agent.follow_path = follow_path
 		agent.manual_control = not udp_control
-		agent.max_stopped_frames = max_stopped_frames
+		agent.max_stopped_frames = stopped_frames
 		agent.name = agent_name
 		agent_node.add_child(agent)
 
@@ -63,7 +63,7 @@ func read_from_socket():
 	stop_agents()
 
 func write_to_socket(data: Dictionary):
-	var pack = JSON.print(data).to_ascii()
+	var pack = JSON.print(data).to_utf8()
 	socket.put_packet(pack)
 
 func execute_command(command):
@@ -74,7 +74,7 @@ func execute_command(command):
 			step(command)
 			send_agent_state()
 		"reset":
-			agents_nb = command["agents_nb"]
+			ai_agents_nb = command["agents_nb"]
 			reset_agents()
 			send_agent_state()
 		"quit":
@@ -104,7 +104,7 @@ func send_agent_state():
 func send_env_info():
 	var agent = agent_node.get_children()[0]
 	var info = {
-		"agents_nb": agents_nb,
+		"agents_nb": ai_agents_nb,
 		"agent_state_shape": agent.get_state_shape(),
 		"agent_action_shape": agent.get_input_shape()
 	}
@@ -115,10 +115,24 @@ func clear_agents():
 		agent_node.remove_child(agent)
 		agent.queue_free()
 
-func reset_agents():
-	clear_agents()
-	spawn_agents()
-
 func stop_agents():
 	for agent in agent_node.get_children():
 		agent.do_action(Vector2.ZERO)
+
+func reset_agents():
+	clear_agents()
+	if udp_control:
+		spawn_agents(ai_agents_nb, max_stopped_frames)
+	else:
+		spawn_agents(1, INF)
+
+func reset_connection():
+	if udp_control:
+		_open_socket()
+	else:
+		_close_socket()
+
+func _on_CheckButton_toggled(button_pressed):
+	udp_control = not button_pressed
+	reset_agents()
+	reset_connection()
