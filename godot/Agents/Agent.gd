@@ -17,17 +17,6 @@ var done = false
 func _ready():
 	update_state()
 
-func _input(event):
-	if manual_control:
-		do_action(get_keyboard_input())
-
-func get_keyboard_input():
-	var input_vector = Vector2.ZERO
-	input_vector.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
-	input_vector.y = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
-	input_vector = input_vector.normalized()
-	return input_vector
-
 func do_action(input_vector: Vector2):
 	vehicle.update_input_vector(input_vector)
 	update_state()

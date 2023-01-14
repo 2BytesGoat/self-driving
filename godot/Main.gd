@@ -15,15 +15,27 @@ onready var follow_path = get_node("Path2D")
 onready var socket_host_node = get_node("Control/VBoxContainer/IPNumber/LineEdit")
 onready var socket_port_node = get_node("Control/VBoxContainer/PortNumber/LineEdit")
 
+var env_state = {}
+var input_vector = Vector2.ZERO
+
 func _ready():
 	reset_agents()
 	reset_connection()
+ 
+func _input(event):
+	if event is InputEventKey and not (udp_control and socket):
+		input_vector.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
+		input_vector.y = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
+		input_vector = input_vector.normalized()
+		for agent in agent_node.get_children():
+			agent.do_action(input_vector)
+		update_state()
 
 func _process(_delta):
 	if not (udp_control and socket):
 		return
 	
-	var command = read_from_socket()
+	var command = get_command_from_socket()
 	if command:
 		execute_command(command)
 
@@ -53,7 +65,7 @@ func spawn_agents(agents_nb, stopped_frames):
 		agent.name = agent_name
 		agent_node.add_child(agent)
 
-func read_from_socket():
+func get_command_from_socket():
 	var data = socket.get_packet().get_string_from_ascii()
 	if data:
 		var command = Utils.evaluate_expression(data)
@@ -88,21 +100,19 @@ func step(command):
 		var agent_action = command.get(agent.name, null)
 		if agent_action:
 			agent.do_action(Vector2(agent_action[0], agent_action[1]))
+	update_state()
 
-func get_agents_state():
-	var state = {}
+func update_state():
 	for agent in agent_node.get_children():
-		state[agent.name] = {
+		env_state[agent.name] = {
 			"time": OS.get_ticks_msec() % 1000,
 			"state": agent.state,
 			"done": agent.done,
 			"reward": agent.calculate_reward()
 		}
-	return state
 
 func send_agent_state():
-	var state = get_agents_state()
-	write_to_socket(state)
+	write_to_socket(env_state)
 
 func send_env_info():
 	var agent = agent_node.get_children()[0]
@@ -128,6 +138,7 @@ func reset_agents():
 		spawn_agents(ai_agents_nb, max_stopped_frames)
 	else:
 		spawn_agents(1, INF)
+	update_state()
 
 func reset_connection():
 	if udp_control:
