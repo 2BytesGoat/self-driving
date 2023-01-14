@@ -15,6 +15,8 @@ onready var follow_path = get_node("Path2D")
 onready var socket_host_node = get_node("Control/VBoxContainer/IPNumber/LineEdit")
 onready var socket_port_node = get_node("Control/VBoxContainer/PortNumber/LineEdit")
 
+onready var agent_status_ui = get_node("Control/VBoxContainer/AgentStatusUI")
+
 var env_state = {}
 var input_vector = Vector2.ZERO
 
@@ -29,9 +31,10 @@ func _input(event):
 		input_vector = input_vector.normalized()
 		for agent in agent_node.get_children():
 			agent.do_action(input_vector)
-		update_state()
 
 func _process(_delta):
+	# TODO: update step every x 
+	update_state()
 	if not (udp_control and socket):
 		return
 	
@@ -100,16 +103,15 @@ func step(command):
 		var agent_action = command.get(agent.name, null)
 		if agent_action:
 			agent.do_action(Vector2(agent_action[0], agent_action[1]))
-	update_state()
 
 func update_state():
 	for agent in agent_node.get_children():
 		env_state[agent.name] = {
-			"time": OS.get_ticks_msec() % 1000,
 			"state": agent.state,
 			"done": agent.done,
 			"reward": agent.calculate_reward()
 		}
+	agent_status_ui.env_state = env_state
 
 func send_agent_state():
 	write_to_socket(env_state)
